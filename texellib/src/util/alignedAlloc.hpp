@@ -27,6 +27,7 @@
 #define ALIGNEDALLOC_HPP_
 
 #include <cstdint>
+#include <limits>
 
 /** STL allocator that makes sure all allocated memory
  *  blocks are aligned to a 64-byte boundary. */

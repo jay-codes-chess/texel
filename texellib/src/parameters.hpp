@@ -363,6 +363,7 @@ namespace UciParams {
     extern std::shared_ptr<Parameters::CheckParam> ponder;
     extern std::shared_ptr<Parameters::CheckParam> analyseMode;
     extern std::shared_ptr<Parameters::SpinParam> strength;
+    extern std::shared_ptr<Parameters::ComboParam> personality;
     extern std::shared_ptr<Parameters::SpinParam> threads;
     extern std::shared_ptr<Parameters::SpinParam> multiPV;
 

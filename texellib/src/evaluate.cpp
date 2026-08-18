@@ -26,7 +26,14 @@
 #include "evaluate.hpp"
 #include "endGameEval.hpp"
 #include "constants.hpp"
+#include "personality.hpp"
 #include <vector>
+
+namespace ExchangeSac { int evaluate(const Position& pos); }
+
+// Current personality scale (per128; 128 = neutral). Set via UCI "Personality" option.
+static PersonalityScale gPersonality = {128,128,128,128,128,128,128,128};
+void setPersonality(const std::string& name) { gPersonality = getPersonalityScale(name); }
 
 int Evaluate::pieceValueOrder[Piece::nPieceTypes] = {
     0,
@@ -202,9 +209,11 @@ Evaluate::evalPos(const Position& pos) {
     wPawnAttacks = BitBoard::wPawnAttacksMask(pos.pieceTypeBB(Piece::WPAWN));
     bPawnAttacks = BitBoard::bPawnAttacksMask(pos.pieceTypeBB(Piece::BPAWN));
 
+    // Personality-scaled evaluation. Each component is multiplied by the active
+    // personality's per128 scale for that dimension (128 = neutral = default Texel).
     score += pieceSquareEval(pos);
     if (print) std::cout << "eval pst    :" << score << std::endl;
-    score += pawnBonus(pos);
+    score += pawnBonus(pos) * gPersonality.pawnStructure / 128;
     if (print) std::cout << "eval pawn   :" << score << std::endl;
     score += castleBonus(pos);
     if (print) std::cout << "eval castle :" << score << std::endl;
@@ -215,14 +224,17 @@ Evaluate::evalPos(const Position& pos) {
     if (print) std::cout << "eval bishop :" << score << std::endl;
     score += knightEval(pos);
     if (print) std::cout << "eval knight :" << score << std::endl;
-    score += threatBonus(pos);
+    score += threatBonus(pos) * gPersonality.threat / 128;
     if (print) std::cout << "eval threat :" << score << std::endl;
     score += protectBonus(pos);
     if (print) std::cout << "eval protect:" << score << std::endl;
-    score += kingSafety(pos);
+    score += kingSafety(pos) * gPersonality.kingSafety / 128;
     if (print) std::cout << "eval king   :" << score << std::endl;
+    // Positional exchange sacrifice (Rodent-style compensation, scaled by personality).
+    score += ExchangeSac::evaluate(pos) * gPersonality.exchangeSac / 128;
+    if (print) std::cout << "eval exchsac:" << score << std::endl;
     if (mhd->endGame)
-        score = EndGameEval::endGameEval<true>(pos, phd->passedPawns, score);
+        score = EndGameEval::endGameEval<true>(pos, phd->passedPawns, score) * gPersonality.endgame / 128;
     if (print) std::cout << "eval endgame:" << score << std::endl;
     if (pos.pieceTypeBB(Piece::WPAWN, Piece::BPAWN)) {
         int hmc = clamp(pos.getHalfMoveClock() / 10, 0, 9);

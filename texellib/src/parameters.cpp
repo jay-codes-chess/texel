@@ -24,6 +24,7 @@
  */
 
 #include "parameters.hpp"
+#include "personality.hpp"
 #include "computerPlayer.hpp"
 
 namespace UciParams {
@@ -34,6 +35,8 @@ namespace UciParams {
     std::shared_ptr<Parameters::CheckParam> analyseMode(std::make_shared<Parameters::CheckParam>("UCI_AnalyseMode", false));
     std::shared_ptr<Parameters::StringParam> opponent(std::make_shared<Parameters::StringParam>("UCI_Opponent", ""));
     std::shared_ptr<Parameters::SpinParam> strength(std::make_shared<Parameters::SpinParam>("Strength", 0, 1000, 1000));
+    std::shared_ptr<Parameters::ComboParam> personality(std::make_shared<Parameters::ComboParam>(
+        "Personality", personalityNames(), "None"));
     std::shared_ptr<Parameters::SpinParam> threads(std::make_shared<Parameters::SpinParam>("Threads", 1, 512, 1));
     std::shared_ptr<Parameters::SpinParam> multiPV(std::make_shared<Parameters::SpinParam>("MultiPV", 1, 256, 1));
 
@@ -616,6 +619,8 @@ Parameters::Parameters() {
     addPar(UciParams::analyseMode);
     addPar(UciParams::opponent);
     addPar(UciParams::strength);
+    addPar(UciParams::personality);
+    UciParams::personality->addListener([]() { setPersonality(UciParams::personality->getStringPar()); });
     addPar(UciParams::threads);
     addPar(UciParams::multiPV);
 
