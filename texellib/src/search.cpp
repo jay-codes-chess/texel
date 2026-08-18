@@ -24,6 +24,7 @@
  */
 
 #include "search.hpp"
+#include "personality.hpp"
 #include "numa.hpp"
 #include "tbprobe.hpp"
 #include "treeLogger.hpp"
@@ -625,7 +626,8 @@ Search::negaScout(int alpha, int beta, int ply, int depth, int recaptureSquare,
         if (evalScore == UNKNOWN_SCORE) {
             evalScore = eval.evalPos(pos);
         }
-        const int razorMargin = (depth <= 1) ? razorMargin1 : razorMargin2;
+        const int sel = currentPersonality().searchSelectivity;
+        const int razorMargin = ((depth <= 1) ? razorMargin1 : razorMargin2) * sel / 128;
         if (evalScore < beta - razorMargin) {
             q0Eval = evalScore;
             int score = quiesce(alpha-razorMargin, beta-razorMargin, ply, 0, inCheck);
@@ -652,6 +654,7 @@ Search::negaScout(int alpha, int beta, int ply, int depth, int recaptureSquare,
             else if (depth <= 2) margin = reverseFutilityMargin2;
             else if (depth <= 3) margin = reverseFutilityMargin3;
             else                 margin = reverseFutilityMargin4;
+            margin = margin * currentPersonality().searchSelectivity / 128;
             if (evalScore == UNKNOWN_SCORE)
                 evalScore = eval.evalPos(pos);
             if (evalScore - margin >= beta) {
@@ -754,6 +757,7 @@ Search::negaScout(int alpha, int beta, int ply, int depth, int recaptureSquare,
         else if (depth <= 2) margin = futilityMargin2;
         else if (depth <= 3) margin = futilityMargin3;
         else                 margin = futilityMargin4;
+        margin = margin * currentPersonality().searchSelectivity / 128;
         if (evalScore == UNKNOWN_SCORE)
             evalScore = eval.evalPos(pos);
         futilityScore = evalScore + margin;
@@ -864,6 +868,9 @@ Search::negaScout(int alpha, int beta, int ply, int depth, int recaptureSquare,
             else if (depth <= 2) lmpMoveCountLimit = lmpMoveCountLimit2;
             else if (depth <= 3) lmpMoveCountLimit = lmpMoveCountLimit3;
             else if (depth <= 4) lmpMoveCountLimit = lmpMoveCountLimit4;
+            // Positional players (low selectivity) search more quiet moves (higher limit);
+            // tactical players (high selectivity) prune them (lower limit).
+            lmpMoveCountLimit = lmpMoveCountLimit * 128 / std::max(64, currentPersonality().searchSelectivity);
         }
     }
 

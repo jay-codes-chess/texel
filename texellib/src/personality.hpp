@@ -23,6 +23,9 @@ struct PersonalityScale {
     int exchangeSac;     // willingness to sacrifice the exchange for compensation
     int passedPawn;      // passed pawn / race emphasis
     int drawTolerance;   // >128 = accepts draws, <128 = fights to win
+    int searchSelectivity; // >128 = sharper (prune quiet moves, tactical);
+                           // <128 = wider (search more quiet moves, positional)
+    int searchDepth;       // >128 = deeper tactical search, <128 = shallower/broader
 };
 
 /** Return the scale for a named personality. Falls back to neutral. */
@@ -33,5 +36,8 @@ std::vector<std::string> personalityNames();
 
 /** Set the active personality (scales the eval). Defined in evaluate.cpp. */
 void setPersonality(const std::string& name);
+
+/** Current personality scale (for the search to read selectivity/depth). */
+const PersonalityScale& currentPersonality();
 
 #endif

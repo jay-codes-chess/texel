@@ -32,8 +32,9 @@
 namespace ExchangeSac { int evaluate(const Position& pos); }
 
 // Current personality scale (per128; 128 = neutral). Set via UCI "Personality" option.
-static PersonalityScale gPersonality = {128,128,128,128,128,128,128,128};
+static PersonalityScale gPersonality = {128,128,128,128,128,128,128,128,128,128};
 void setPersonality(const std::string& name) { gPersonality = getPersonalityScale(name); }
+const PersonalityScale& currentPersonality() { return gPersonality; }
 
 int Evaluate::pieceValueOrder[Piece::nPieceTypes] = {
     0,

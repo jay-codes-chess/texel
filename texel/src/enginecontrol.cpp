@@ -26,6 +26,7 @@
 #define _GLIBCXX_USE_NANOSLEEP
 
 #include "enginecontrol.hpp"
+#include "personality.hpp"
 #include "util/random.hpp"
 #include "searchparams.hpp"
 #include "book.hpp"
@@ -180,8 +181,12 @@ EngineControl::computeTimeLimit(const SearchParams& sPar) {
         maxTimeLimit = -1;
         maxDepth = -1;
     } else {
-        if (sPar.depth > 0)
-            maxDepth = sPar.depth;
+        if (sPar.depth > 0) {
+            // Tactical players (high searchDepth) search deeper in the same time;
+            // positional players (low) search shallower but wider.
+            maxDepth = sPar.depth * currentPersonality().searchDepth / 128;
+            if (maxDepth < 1) maxDepth = 1;
+        }
         if (sPar.mate > 0) {
             int md = sPar.mate * 2 - 1;
             maxDepth = maxDepth == -1 ? md : std::min(maxDepth, md);
